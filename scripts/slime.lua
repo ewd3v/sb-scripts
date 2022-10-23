@@ -65,17 +65,20 @@ if not Character then
 	error("No character exists.", 0)
 end
 
-for _, c in ipairs(Character:GetChildren()) do
-	if c:IsA("BasePart") or c:IsA("Accessory") or c:IsA("Hat") then
-		c:Destroy()
-	end
-end
-
+Character:ClearAllChildren()
+Instance.new("Humanoid", Character)
 script.Parent = Player.Character
 
 local Size = 9
-local Mass = Size ^ 3
+local Mass = nil
 local SizeDivMul = 1 / Size
+
+do -- dont ask ok?
+	local temp = Instance.new("Part")
+	temp.Size = Vector3.new(1, 1, 1) * Size
+	Mass = temp.Mass
+	temp:Destroy()
+end
 
 local PrimaryColor = Color3.new()
 local SecondaryColor = Color3.new()
@@ -134,6 +137,8 @@ end
 
 local Inner = Instance.new("SpawnLocation")
 Inner.Name = "Inner"
+Inner.Anchored = true
+Inner.CanCollide = false
 Inner.Color = PrimaryColor
 Inner.Transparency = 0.5
 Inner.Material = Enum.Material.Neon
@@ -142,6 +147,8 @@ Inner.Parent = script
 
 local Outer = Instance.new("SpawnLocation")
 Outer.Name = "Outer"
+Outer.Anchored = true
+Outer.CanCollide = false
 Outer.Color = SecondaryColor
 Outer.Transparency = 0.5
 Outer.Material = Enum.Material.Neon
@@ -150,6 +157,8 @@ Outer.Parent = script
 
 local RightEye = Instance.new("SpawnLocation")
 RightEye.Name = "RightEye"
+RightEye.Anchored = true
+RightEye.CanCollide = false
 RightEye.Color = Color3.fromRGB(0, 0, 0)
 RightEye.Material = Enum.Material.Plastic
 RightEye.Enabled = false
@@ -157,6 +166,8 @@ RightEye.Parent = script
 
 local LeftEye = Instance.new("SpawnLocation")
 LeftEye.Name = "LeftEye"
+LeftEye.Anchored = true
+LeftEye.CanCollide = false
 LeftEye.Color = Color3.fromRGB(0, 0, 0)
 LeftEye.Material = Enum.Material.Plastic
 LeftEye.Enabled = false
@@ -689,9 +700,6 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	
 	Camera.CameraSubject = CameraPart
-	Camera.CameraType = Enum.CameraType.Custom
-	Player.CameraMode = Enum.CameraMode.Classic
-	
 	BodyGyro.CFrame = CFrame.new(Bottom.Position * Vector3.new(1, 0, 1), MouseHitPosition * Vector3.new(1, 0, 1))
 end)
 
