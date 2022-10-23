@@ -4,6 +4,273 @@ local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
+
+local Sounds = {
+	["Jump"] = {"rbxassetid://836796971", "rbxassetid://836797474"};
+	["Land"] = "rbxassetid://344167846";
+	["Smash"] = "rbxassetid://6306635390";
+}
+
+local SoundPlayer = nil
+function PlaySound(Name,Position,Volume)
+	if not Volume then
+		Volume = 1
+	end
+	
+	pcall(function()
+		local SoundId = ""
+		if Sounds[Name] then
+			if typeof(Sounds[Name]) == "table" then
+				SoundId = Sounds[Name][Random.new():NextInteger(1,#Sounds[Name])]
+			else
+				SoundId = Sounds[Name]
+			end
+		else
+			SoundId = Name
+		end
+
+		local Player = Instance.new("SpawnLocation")
+		Player.CanCollide = false
+		Player.Anchored = true
+		Player.Position = Position
+
+		if not SoundPlayer then
+			SoundPlayer = Instance.new("Sound")
+		end
+		
+		xpcall(function()
+			SoundPlayer.Parent = Player
+		end,function()
+			SoundPlayer:Destroy()
+			SoundPlayer = Instance.new("Sound")
+			SoundPlayer.Parent = Player
+		end)
+		
+		SoundPlayer.SoundId = SoundId
+		SoundPlayer.PlayOnRemove = true
+
+		Player.Parent = Workspace
+		SoundPlayer.Parent = nil
+		Player:Destroy()
+	end)
+end
+
+local Player = owner
+local Character = Player.Character
+
+task.wait()
+
+if not Character then
+	script:Destroy()
+	error("No character exists.", 0)
+end
+
+for _, c in ipairs(Character:GetChildren()) do
+	if c:IsA("BasePart") or c:IsA("Accessory") or c:IsA("Hat") then
+		c:Destroy()
+	end
+end
+
+script.Parent = Player.Character
+
+local Size = 9
+local Mass = Size ^ 3
+local SizeDivMul = 1 / Size
+
+local PrimaryColor = Color3.new()
+local SecondaryColor = Color3.new()
+local NametagText = Player.Name == Player.DisplayName and "@"..Player.Name or Player.DisplayName.." (@"..Player.Name..")"
+do
+	local PrimaryColors =
+		{
+			Color3.new(253/255, 41/255, 67/255), -- OK
+			Color3.new(1/255, 152/255, 235/255), -- OK
+			Color3.new(2/255, 184/255, 87/255), -- OK
+			Color3.new(0.419608, 0.196078, 0.486275), -- OK
+			Color3.new(0.854902, 0.521569, 0.254902), -- OK
+			Color3.new(0.860784, 0.703922, 0.188235), -- OK
+			Color3.new(0.859804, 0.629412, 0.684314), -- OK
+			Color3.new(0.743137, 0.672549, 0.503922), -- 
+		}
+	local SecondaryColors =
+		{
+			Color3.new(147/255, 62/255, 87/255), --  OK
+			Color3.new(30/255, 134/255, 155/255), -- OK
+			Color3.fromRGB(87, 121, 85), -- OK
+			Color3.new(0.319608, 0.236078, 0.386275), -- OK
+			Color3.new(0.654902, 0.421569, 0.304902), -- OK
+			Color3.new(0.560784, 0.503922, 0.188235), -- OK
+			Color3.new(0.69804, 0.479412, 0.534314), -- OK
+			Color3.new(0.643137, 0.572549, 0.503922), -- 
+		}
+	local function GetNameValue(pName)
+		local value=0
+		for index = 1,#pName do
+			local cValue=string.byte(string.sub(pName,index,index))
+			local reverseIndex=#pName-index+1
+			if #pName%2==1 then
+				reverseIndex=reverseIndex-1
+			end
+			if reverseIndex%4>=2 then
+				cValue=-cValue
+			end
+			value=value+cValue
+		end
+		return value
+	end
+	PrimaryColor = PrimaryColors[(GetNameValue(Player.Name)%#PrimaryColors)+1]
+	SecondaryColor = SecondaryColors[(GetNameValue(Player.Name)%#SecondaryColors)+1]
+end
+
+local TopHeight = Size - 1
+local BottomCFrame = CFrame.new(0, 100, 0)
+
+local TargetTopHeight = TopHeight
+local TargetBottomCFrame = BottomCFrame
+
+function Lerp(a, b, t)
+	return a + (b - a) * t
+end
+
+local Inner = Instance.new("SpawnLocation")
+Inner.Name = "Inner"
+Inner.Color = PrimaryColor
+Inner.Transparency = 0.5
+Inner.Material = Enum.Material.Neon
+Inner.Enabled = false
+Inner.Parent = script
+
+local Outer = Instance.new("SpawnLocation")
+Outer.Name = "Outer"
+Outer.Color = SecondaryColor
+Outer.Transparency = 0.5
+Outer.Material = Enum.Material.Neon
+Outer.Enabled = false
+Outer.Parent = script
+
+local RightEye = Instance.new("SpawnLocation")
+RightEye.Name = "RightEye"
+RightEye.Color = Color3.fromRGB(0, 0, 0)
+RightEye.Material = Enum.Material.Plastic
+RightEye.Enabled = false
+RightEye.Parent = script
+
+local LeftEye = Instance.new("SpawnLocation")
+LeftEye.Name = "LeftEye"
+LeftEye.Color = Color3.fromRGB(0, 0, 0)
+LeftEye.Material = Enum.Material.Plastic
+LeftEye.Enabled = false
+LeftEye.Parent = script
+
+local Nametag = Instance.new("BillboardGui")
+Nametag.Name = "Nametag"
+Nametag.Adornee = Outer
+Nametag.Size = UDim2.new(8, 0, 1.5, 0)
+Nametag.StudsOffset = Vector3.new(0, Size * 0.5 + 2,0)
+Nametag.Parent = Outer
+
+local Text = Instance.new("TextBox")
+Text.Name = "Text"
+Text.TextEditable = false
+Text.ClearTextOnFocus = false
+Text.TextScaled = true
+Text.Text = NametagText
+Text.Size = UDim2.new(1, 0, 1, 0)
+Text.BackgroundTransparency = 1
+Text.TextColor3 = Color3.new(1, 1, 1)
+Text.TextStrokeTransparency = 0
+Text.Parent = Nametag
+
+local InnerColor = nil
+local OuterColor = nil
+
+local RefitPart = {}
+local PartEvents = {}
+local PartData = {
+	CFrame = {
+		Inner = CFrame.identity;
+		Outer = CFrame.identity;
+		RightEye = CFrame.identity;
+		LeftEye = CFrame.identity;
+	};
+	
+	Size = {
+		Inner = Vector3.zero;
+		Outer = Vector3.zero;
+		RightEye = Vector3.zero;
+		LeftEye = Vector3.zero;
+	};
+}
+
+local RemoteEvent = Instance.new("RemoteEvent", script)
+RemoteEvent.OnServerEvent:Connect(function(_Player, Action, Data)
+	if Player ~= _Player then
+		return
+	end
+	
+	if Action == "Set" then
+		TargetTopHeight = Data[1]
+		TargetBottomCFrame = Data[2]
+	elseif Action == "PlaySound" then
+		PlaySound(unpack(Data))
+	elseif Action == "Smash" then
+		PlaySound("Smash",Data,1)
+	end
+end)
+
+RunService.Heartbeat:Connect(function(dt)
+	TopHeight = Lerp(TopHeight,TargetTopHeight, math.clamp(30 * dt, 0, 1))
+	BottomCFrame = BottomCFrame:Lerp(TargetBottomCFrame, math.clamp(30 * dt, 0, 1))
+	
+	do
+		local TopCFrame = BottomCFrame * CFrame.new(0, TopHeight, 0)
+		
+		local TopPosition = (TopCFrame * CFrame.new(0, 0.5, 0)).Position
+		local BottomPosition = (BottomCFrame * CFrame.new(0,-0.5,0)).Position
+		
+		local Height = math.clamp((TopPosition - BottomPosition).Magnitude, 1, 100)
+		local Width = math.clamp((Mass / Height) ^ 0.5, 1, 100)
+		
+		PartData.CFrame.Outer = BottomCFrame:Lerp(TopCFrame, 0.5)
+		PartData.Size.Outer = Vector3.new(Width, Height, Width)
+		
+		PartData.CFrame.Inner = PartData.CFrame.Outer
+		PartData.Size.Inner = PartData.Size.Outer - Vector3.new(1, 1, 1)
+		
+		PartData.CFrame.RightEye = PartData.CFrame.Outer * CFrame.new((2 * PartData.Size.Inner.X) * SizeDivMul, (1 * PartData.Size.Inner.Y) * SizeDivMul, -PartData.Size.Inner.Z * 0.5 - 0.075)
+		PartData.Size.RightEye = Vector3.new((1.6 * PartData.Size.Inner.X) * SizeDivMul, (3 * PartData.Size.Inner.Y) * SizeDivMul, 0.15)
+		
+		PartData.CFrame.LeftEye = PartData.CFrame.Outer * CFrame.new((-2 * PartData.Size.Inner.X) * SizeDivMul, (1 * PartData.Size.Inner.Y) * SizeDivMul, -PartData.Size.Inner.Z * 0.5 - 0.075)
+		PartData.Size.LeftEye = PartData.Size.RightEye
+	end
+	
+	Inner.CFrame = PartData.CFrame.Inner
+	Outer.CFrame = PartData.CFrame.Outer
+	RightEye.CFrame = PartData.CFrame.RightEye
+	LeftEye.CFrame = PartData.CFrame.LeftEye
+	
+	Inner.Size = PartData.Size.Inner
+	Outer.Size = PartData.Size.Outer
+	RightEye.Size = PartData.Size.RightEye
+	LeftEye.Size = PartData.Size.LeftEye
+end)
+
+Character.AncestryChanged:Connect(function()
+	if Character.Parent ~= nil then
+		return
+	end
+	
+	warn("Please say g/no. to fully stop the script.")
+	script:Destroy()
+end)
+
+local Client = NLS([==[
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 local UIS = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
@@ -444,3 +711,10 @@ UIS.InputBegan:Connect(function(io)
 		end
 	end
 end)
+]==], script)
+
+Client:SetAttribute("Size", Size)
+Client:SetAttribute("Mass", Mass)
+Client:SetAttribute("Ready", true)
+
+print("Slime loaded! Created by ew_001.\nSay 'g/r no.' to respawn, the 'no.' is to clear up the script.")
