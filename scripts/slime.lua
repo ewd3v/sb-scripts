@@ -725,4 +725,4 @@ Client:SetAttribute("Size", Size)
 Client:SetAttribute("Mass", Mass)
 Client:SetAttribute("Ready", true)
 
-print("Slime loaded! Created by ew_001.\nSay 'g/r no.' to respawn, the 'no.' is to clear up the script.")
+print("Slime loaded! Created by ew_001.\nSay 'g/no. r' to respawn, the 'no.' is to clear up the script.")
