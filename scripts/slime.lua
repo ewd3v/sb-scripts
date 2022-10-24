@@ -726,3 +726,6 @@ Client:SetAttribute("Mass", Mass)
 Client:SetAttribute("Ready", true)
 
 print("Slime loaded! Created by ew_001.\nSay 'g/no. r' to respawn, the 'no.' is to clear up the script.")
+print("Right CTRL - Squish / Crouch")
+print("WASD - Move")
+print("Mouse - Look around")
