@@ -82,7 +82,7 @@ end
 
 local PrimaryColor = Color3.new()
 local SecondaryColor = Color3.new()
-local NametagText = Player.Name == Player.DisplayName and "@"..Player.Name or Player.DisplayName.." (@"..Player.Name..")"
+local NametagText = Player.Name == Player.DisplayName and Player.Name or Player.DisplayName.." (@"..Player.Name..")"
 do
 	local PrimaryColors =
 		{
